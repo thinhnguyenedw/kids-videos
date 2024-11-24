@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "661299349539",
+    "project_id": "kids-videos-edw",
+    "storage_bucket": "kids-videos-edw.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:661299349539:android:98db3e650e8f00d09ec996",
+        "android_client_info": {
+          "package_name": "com.edwbion.kidsvideosbtl"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9ipJjKkGqCF4o3SQ7oenmdMyJIBxXSKI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
