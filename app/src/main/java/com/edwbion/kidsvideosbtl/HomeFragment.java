@@ -73,11 +73,10 @@ public class HomeFragment extends Fragment {
                         for (DocumentSnapshot document : value.getDocuments()) {
                             String title = document.getString("title");
                             String description = document.getString("description");
-                            String thumbnail = document.getString("thumbnailUrl");
                             String videoUrl = document.getString("videoUrl");
 
                             // Thêm video vào danh sách
-                            videoList.add(new Video(title, description, thumbnail, videoUrl));
+                            videoList.add(new Video(title, description, videoUrl));
                         }
 
                         // Cập nhật RecyclerView với dữ liệu mới
