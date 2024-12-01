@@ -18,6 +18,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -25,6 +30,7 @@ public class RegisterActivity extends AppCompatActivity {
     private Button registerButton;
     private ProgressBar progressBar;
     private FirebaseAuth mAuth;
+    private FirebaseFirestore firestore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,12 +38,13 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register); // Thay thế bằng layout của bạn
 
         mAuth = FirebaseAuth.getInstance();
+        firestore = FirebaseFirestore.getInstance();
 
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         registerButton = findViewById(R.id.registerButton);
         progressBar = findViewById(R.id.progressBar);
-        TextView loginTextView = findViewById(R.id.loginTextView); // Thay thế bằng ID của TextView trong layout
+        TextView loginTextView = findViewById(R.id.loginTextView);
 
         loginTextView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,12 +79,30 @@ public class RegisterActivity extends AppCompatActivity {
                                 progressBar.setVisibility(View.GONE);
 
                                 if (task.isSuccessful()) {
-                                    Toast.makeText(RegisterActivity.this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+                                    String userId = mAuth.getCurrentUser().getUid();
 
-                                    // Chuyển đến màn hình đăng nhập
-                                    startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
-                                    // Kết thúc RegisterActivity
-                                    finish();
+                                    // Lưu thông tin người dùng vào Firestore
+                                    Map<String, Object> user = new HashMap<>();
+                                    user.put("email", email);
+                                    user.put("role", "user"); // Vai trò mặc định là "user"
+
+                                    firestore.collection("users").document(userId)
+                                            .set(user)
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    if (task.isSuccessful()) {
+                                                        Toast.makeText(RegisterActivity.this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+
+                                                        // Chuyển đến màn hình đăng nhập
+                                                        startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                                                        finish();
+                                                    } else {
+                                                        Toast.makeText(RegisterActivity.this, "Lưu thông tin thất bại: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                            });
+
                                 } else {
                                     Toast.makeText(RegisterActivity.this, "Đăng ký thất bại: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                                 }

@@ -1,24 +1,26 @@
 package com.edwbion.kidsvideosbtl;
 
-import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowManager;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
+import androidx.fragment.app.FragmentContainerView;
 
 public class VideoPlayer extends AppCompatActivity implements SensorEventListener {
 
     private WebView webView;
+    private FragmentContainerView fragmentContainerView;
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private Sensor magnetometer;
@@ -29,7 +31,13 @@ public class VideoPlayer extends AppCompatActivity implements SensorEventListene
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_video_player);
+        setContentView(R.layout.activity_video_player_portrait);
+        // Thêm HomeFragment vào FragmentContainerView
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.homeFragmentContainer, new HomeFragment())
+                    .commit();
+        }
 
         // Nhận video URL từ Intent
         String videoUrl = getIntent().getStringExtra("videoUrl");
@@ -37,6 +45,7 @@ public class VideoPlayer extends AppCompatActivity implements SensorEventListene
         // Khởi tạo WebView
         webView = findViewById(R.id.webView);
         videoInfo=findViewById(R.id.videoInfo);
+        fragmentContainerView=findViewById(R.id.homeFragmentContainer);
 
 
 
@@ -117,7 +126,7 @@ public class VideoPlayer extends AppCompatActivity implements SensorEventListene
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        // Xác định loại cảm biến và gán giá trị cho mảng gravity hoặc geomagnetic
+/*        // Xác định loại cảm biến và gán giá trị cho mảng gravity hoặc geomagnetic
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             gravity = event.values.clone(); // Clone để tránh dữ liệu bị thay đổi ngoài ý muốn
         } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
@@ -144,12 +153,11 @@ public class VideoPlayer extends AppCompatActivity implements SensorEventListene
                     exitLandscapeMode(); // Quay lại chế độ portrait
                 }
             }
-        }
+        }*/
     }
 
     // Hàm để chuyển sang chế độ landscape
     private void enterLandscapeMode() {
-        ConstraintLayout constraintLayout = findViewById(R.id.main);
         // Ẩn thanh trạng thái và navigation bar
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_FULLSCREEN |
@@ -157,16 +165,21 @@ public class VideoPlayer extends AppCompatActivity implements SensorEventListene
                         View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
         );
 
-        // Ẩn TextView
+        // Ẩn TextView và Fragment
         videoInfo.setVisibility(View.GONE);
+        fragmentContainerView.setVisibility(View.GONE);
 
         // WebView chiếm toàn màn hình
-        ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) webView.getLayoutParams();
-        layoutParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = ConstraintLayout.LayoutParams.MATCH_PARENT;
+        ConstraintLayout constraintLayout = findViewById(R.id.main);
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(constraintLayout);
 
-        // Cập nhật lại layoutParams cho WebView
-        webView.setLayoutParams(layoutParams);
+        // Đặt chiều cao của WebView thành MATCH_PARENT
+        constraintSet.constrainWidth(webView.getId(), ConstraintLayout.LayoutParams.MATCH_PARENT);
+        constraintSet.constrainHeight(webView.getId(), ConstraintLayout.LayoutParams.MATCH_PARENT);
+
+        // Áp dụng ràng buộc mới
+        constraintSet.applyTo(constraintLayout);
     }
 
     // Hàm để quay lại chế độ portrait
@@ -174,16 +187,39 @@ public class VideoPlayer extends AppCompatActivity implements SensorEventListene
         // Hiển thị lại thanh trạng thái
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
 
-        // Hiển thị TextView
+        // Hiển thị TextView và Fragment
         videoInfo.setVisibility(View.VISIBLE);
+        fragmentContainerView.setVisibility(View.VISIBLE);
 
-        // WebView quay lại chiều cao
-        ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) webView.getLayoutParams();
-        layoutParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = 0; // Dựa trên ràng buộc tỷ lệ
-        webView.setLayoutParams(layoutParams);
+        // WebView trở lại với chiều cao 33% màn hình
+        ConstraintLayout constraintLayout = findViewById(R.id.main);
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(constraintLayout);
+
+        // Đặt lại chiều cao cho WebView thành 33% màn hình
+        constraintSet.constrainWidth(webView.getId(), ConstraintLayout.LayoutParams.MATCH_PARENT);
+        constraintSet.constrainHeight(webView.getId(), 0);
+        // Dùng lại chiều cao dựa trên tỷ lệ phần trăm
+
+        // Áp dụng lại ràng buộc
+        constraintSet.applyTo(constraintLayout);
     }
 
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            // Chế độ Landscape
+            // Thay đổi layout cho chế độ landscape
+
+            enterLandscapeMode();  // Cập nhật giao diện cho chế độ landscape
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            // Chế độ Portrait
+            // Thay đổi layout cho chế độ portrait
+
+            exitLandscapeMode();  // Cập nhật giao diện cho chế độ portrait
+        }
+    }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
