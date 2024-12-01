@@ -6,9 +6,12 @@
     tools:context=".SettingsFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <Button
+        android:id="@+id/logoutButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:text="Đăng xuất" />
 
 </FrameLayout>
