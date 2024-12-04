@@ -2,6 +2,7 @@ package com.edwbion.kidsvideosbtl;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
@@ -45,20 +48,25 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
                 .into(holder.videoThumbnail);
 
         // Xử lý sự kiện khi nhấn vào thumbnail để mở Activity phát video
-        holder.videoThumbnail.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Truyền video URL vào Intent
-                String videoUrl = video.getVideoUrl(); // Đây là URL YouTube
-                String description = video.getDescription();
-                // Mở VideoPlayerActivity và truyền video URL
-                Intent intent = new Intent(context, VideoPlayer.class);
-                intent.putExtra("videoUrl", videoUrl);// Truyền video URL và description
-                intent.putExtra("description", description);
-                context.startActivity(intent);
-            }
+        holder.videoThumbnail.setOnClickListener(v -> {
+            // Lấy thông tin video
+            String videoUrl = video.getVideoUrl();  // Đây là URL YouTube
+            String title = video.getTitle();
+            String description = video.getDescription();
+
+            // Lấy userId của người dùng hiện tại
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+            // Lưu video vào Firestore trong collection "watched"
+            saveVideoToWatched(userId, videoUrl, title, description);
+            Intent intent = new Intent(context, VideoPlayer.class);
+            intent.putExtra("videoUrl", videoUrl); // Truyền video URL và description
+            intent.putExtra("description", description);
+            context.startActivity(intent);
         });
     }
+
+
 
     private String getYouTubeThumbnailUrl(String videoUrl) {
         String videoId = extractVideoIdFromUrl(videoUrl);
@@ -78,6 +86,22 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
             }
         }
         return videoId;
+    }
+    private void saveVideoToWatched(String userId, String videoUrl, String title, String description) {
+        // Khởi tạo Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Tham chiếu đến collection "watched" của người dùng
+        db.collection("users")
+                .document(userId)
+                .collection("watched")
+                .add(new Video(title, description, videoUrl))  // Thêm video vào Firestore
+                .addOnSuccessListener(documentReference -> {
+                    Log.d("Firestore", "Video saved to watched!");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "Error saving video: ", e);
+                });
     }
 
     @Override

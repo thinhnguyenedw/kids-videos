@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">kidsvideosBTL</string>
     <string name="tab_1_title">Trang chủ</string>
-    <string name="tab_2_title">Tab 2</string>
+    <string name="tab_2_title">Lịch sử xem</string>
     <string name="tab_3_title">Cài đặt</string>
     <!-- Preference Titles -->
     <string name="messages_header">Messages</string>

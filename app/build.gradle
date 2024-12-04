@@ -46,4 +46,5 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
     implementation 'com.google.firebase:firebase-firestore:24.5.0'
     implementation 'com.google.firebase:firebase-auth:21.1.0'   // Nếu bạn cần sử dụng Firebase Storage
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
 }
